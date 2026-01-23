@@ -1,50 +1,49 @@
 <?php
-// ================================
-// 1. VARIABLES Y ARREGLOS
-// ================================
+session_start();
 
-$estudiantes = [];
+// ================================
+// 1. INICIALIZAR ARREGLO EN SESIÓN
+// ================================
+if (!isset($_SESSION["estudiantes"])) {
+    $_SESSION["estudiantes"] = [];
+}
+
 $mensaje = "";
-$total = 0;
+$mostrarTabla = false;
 
 // ================================
 // 2. FUNCIÓN
 // ================================
 function esMayorDeEdad($edad) {
-    if ($edad >= 18) {
-        return "Sí";
-    } else {
-        return "No";
-    }
+    return ($edad >= 18) ? "Sí" : "No";
 }
 
 // ================================
-// 3. CONTROL DE FLUJO (IF / POST)
+// 3. REGISTRO DE ESTUDIANTE
 // ================================
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if (isset($_POST["guardar"])) {
 
     $nombre  = $_POST["nombre"];
     $edad    = (int) $_POST["edad"];
     $carrera = $_POST["carrera"];
 
-    // ================================
-    // 4. CONDICIONALES
-    // ================================
     if ($nombre == "" || $edad <= 0 || $carrera == "") {
-        $mensaje = "❌ Todos los campos son obligatorios";
+        $mensaje = "❌ Complete todos los campos";
     } else {
-
-        // ================================
-        // 5. ARREGLO ASOCIATIVO
-        // ================================
-        $estudiantes[] = [
+        $_SESSION["estudiantes"][] = [
             "nombre" => $nombre,
             "edad" => $edad,
             "carrera" => $carrera
         ];
-
-        $mensaje = "✅ Estudiante agregado correctamente";
+        $mensaje = "✅ Estudiante registrado correctamente";
     }
+}
+
+// ================================
+// 4. BOTÓN VER TODOS
+// ================================
+if (isset($_POST["ver"])) {
+    $mostrarTabla = true;
 }
 ?>
 
@@ -52,16 +51,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ejemplo PHP + Bootstrap</title>
-
-    <!-- BOOTSTRAP -->
+    <title>Registro PHP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
 <div class="container mt-5">
-
-    <h2 class="text-center mb-4">📚 Registro de Estudiantes (PHP)</h2>
+    <h2 class="text-center mb-4">📚 Registro de Estudiantes</h2>
 
     <!-- MENSAJE -->
     <?php if ($mensaje != ""): ?>
@@ -71,22 +68,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php endif; ?>
 
     <!-- FORMULARIO -->
-    <div class="card mb-4">
+    <div class="card mb-3">
         <div class="card-body">
             <form method="POST">
 
-                <div class="mb-3">
-                    <label class="form-label">Nombre</label>
+                <div class="mb-2">
+                    <label>Nombre</label>
                     <input type="text" name="nombre" class="form-control">
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Edad</label>
+                <div class="mb-2">
+                    <label>Edad</label>
                     <input type="number" name="edad" class="form-control">
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Carrera</label>
+                    <label>Carrera</label>
                     <select name="carrera" class="form-select">
                         <option value="">Seleccione</option>
                         <option>Ingeniería</option>
@@ -95,13 +92,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </select>
                 </div>
 
-                <button class="btn btn-primary w-100">Guardar</button>
+                <button name="guardar" class="btn btn-primary w-100 mb-2">
+                    Guardar estudiante
+                </button>
+
+                <button name="ver" class="btn btn-success w-100">
+                    Ver todos los registrados
+                </button>
+
             </form>
         </div>
     </div>
 
     <!-- TABLA -->
-    <?php if (count($estudiantes) > 0): ?>
+    <?php if ($mostrarTabla && count($_SESSION["estudiantes"]) > 0): ?>
 
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
@@ -115,26 +119,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </thead>
             <tbody>
 
-            <?php
-            // ================================
-            // 6. CICLO FOREACH
-            // ================================
-            foreach ($estudiantes as $index => $est) {
-                $total++;
-            ?>
+            <?php foreach ($_SESSION["estudiantes"] as $i => $est): ?>
                 <tr>
-                    <td><?= $index + 1 ?></td>
+                    <td><?= $i + 1 ?></td>
                     <td><?= $est["nombre"] ?></td>
                     <td><?= $est["edad"] ?></td>
                     <td><?= esMayorDeEdad($est["edad"]) ?></td>
                     <td><?= $est["carrera"] ?></td>
                 </tr>
-            <?php } ?>
+            <?php endforeach; ?>
 
             </tbody>
         </table>
 
-        <p class="fw-bold">Total de estudiantes registrados: <?= $total ?></p>
+        <p class="fw-bold">
+            Total registrados: <?= count($_SESSION["estudiantes"]) ?>
+        </p>
 
     <?php endif; ?>
 
