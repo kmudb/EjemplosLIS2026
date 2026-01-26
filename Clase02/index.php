@@ -2,143 +2,185 @@
 session_start();
 
 // ================================
-// 1. INICIALIZAR ARREGLO EN SESIÓN
+// INICIALIZAR ARREGLO
 // ================================
 if (!isset($_SESSION["estudiantes"])) {
     $_SESSION["estudiantes"] = [];
 }
 
 $mensaje = "";
-$mostrarTabla = false;
+$editarIndex = null;
 
 // ================================
-// 2. FUNCIÓN
+// FUNCIONES
 // ================================
 function esMayorDeEdad($edad) {
     return ($edad >= 18) ? "Sí" : "No";
 }
 
+function promedioEdades($estudiantes) {
+    $suma = 0;
+    foreach ($estudiantes as $e) {
+        $suma += $e["edad"];
+    }
+    return count($estudiantes) > 0 ? $suma / count($estudiantes) : 0;
+}
+
 // ================================
-// 3. REGISTRO DE ESTUDIANTE
+// GUARDAR
 // ================================
 if (isset($_POST["guardar"])) {
 
-    $nombre  = $_POST["nombre"];
-    $edad    = (int) $_POST["edad"];
+    $nombre = $_POST["nombre"];
+    $edad = (int) $_POST["edad"];
     $carrera = $_POST["carrera"];
 
     if ($nombre == "" || $edad <= 0 || $carrera == "") {
         $mensaje = "❌ Complete todos los campos";
     } else {
-        $_SESSION["estudiantes"][] = [
-            "nombre" => $nombre,
-            "edad" => $edad,
-            "carrera" => $carrera
-        ];
-        $mensaje = "✅ Estudiante registrado correctamente";
+        $_SESSION["estudiantes"][] = compact("nombre", "edad", "carrera");
+        $mensaje = "✅ Estudiante agregado";
     }
 }
 
 // ================================
-// 4. BOTÓN VER TODOS
+// ELIMINAR
 // ================================
-if (isset($_POST["ver"])) {
-    $mostrarTabla = true;
+if (isset($_GET["eliminar"])) {
+    $i = $_GET["eliminar"];
+    unset($_SESSION["estudiantes"][$i]);
+    $_SESSION["estudiantes"] = array_values($_SESSION["estudiantes"]);
+}
+
+// ================================
+// EDITAR
+// ================================
+if (isset($_GET["editar"])) {
+    $editarIndex = $_GET["editar"];
+}
+
+if (isset($_POST["actualizar"])) {
+    $_SESSION["estudiantes"][$_POST["index"]] = [
+        "nombre" => $_POST["nombre"],
+        "edad" => (int) $_POST["edad"],
+        "carrera" => $_POST["carrera"]
+    ];
+    $mensaje = "🔄 Estudiante actualizado";
+}
+
+// ================================
+// LIMPIAR
+// ================================
+if (isset($_POST["limpiar"])) {
+    $_SESSION["estudiantes"] = [];
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Registro PHP</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<title>CRUD Estudiantes PHP</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
-
 <div class="container mt-5">
-    <h2 class="text-center mb-4">📚 Registro de Estudiantes</h2>
 
-    <!-- MENSAJE -->
-    <?php if ($mensaje != ""): ?>
-        <div class="alert alert-info text-center">
-            <?= $mensaje ?>
-        </div>
-    <?php endif; ?>
+<h2 class="text-center mb-4">📚 Gestión de Estudiantes</h2>
 
-    <!-- FORMULARIO -->
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="POST">
+<?php if ($mensaje): ?>
+<div class="alert alert-info text-center"><?= $mensaje ?></div>
+<?php endif; ?>
 
-                <div class="mb-2">
-                    <label>Nombre</label>
-                    <input type="text" name="nombre" class="form-control">
-                </div>
+<!-- FORMULARIO -->
+<div class="card mb-4">
+<div class="card-body">
 
-                <div class="mb-2">
-                    <label>Edad</label>
-                    <input type="number" name="edad" class="form-control">
-                </div>
+<form method="POST">
 
-                <div class="mb-3">
-                    <label>Carrera</label>
-                    <select name="carrera" class="form-select">
-                        <option value="">Seleccione</option>
-                        <option>Ingeniería</option>
-                        <option>Licenciatura</option>
-                        <option>Técnico</option>
-                    </select>
-                </div>
+<input type="hidden" name="index" value="<?= $editarIndex ?? '' ?>">
 
-                <button name="guardar" class="btn btn-primary w-100 mb-2">
-                    Guardar estudiante
-                </button>
-
-                <button name="ver" class="btn btn-success w-100">
-                    Ver todos los registrados
-                </button>
-
-            </form>
-        </div>
-    </div>
-
-    <!-- TABLA -->
-    <?php if ($mostrarTabla && count($_SESSION["estudiantes"]) > 0): ?>
-
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Edad</th>
-                    <th>Mayor de Edad</th>
-                    <th>Carrera</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            <?php foreach ($_SESSION["estudiantes"] as $i => $est): ?>
-                <tr>
-                    <td><?= $i + 1 ?></td>
-                    <td><?= $est["nombre"] ?></td>
-                    <td><?= $est["edad"] ?></td>
-                    <td><?= esMayorDeEdad($est["edad"]) ?></td>
-                    <td><?= $est["carrera"] ?></td>
-                </tr>
-            <?php endforeach; ?>
-
-            </tbody>
-        </table>
-
-        <p class="fw-bold">
-            Total registrados: <?= count($_SESSION["estudiantes"]) ?>
-        </p>
-
-    <?php endif; ?>
-
+<div class="mb-2">
+<label>Nombre</label>
+<input class="form-control" name="nombre"
+value="<?= $editarIndex !== null ? $_SESSION["estudiantes"][$editarIndex]["nombre"] : '' ?>">
 </div>
 
+<div class="mb-2">
+<label>Edad</label>
+<input type="number" class="form-control" name="edad"
+value="<?= $editarIndex !== null ? $_SESSION["estudiantes"][$editarIndex]["edad"] : '' ?>">
+</div>
+
+<div class="mb-3">
+<label>Carrera</label>
+<select name="carrera" class="form-select">
+<option value="">Seleccione</option>
+<?php
+$carreras = ["Ingeniería", "Licenciatura", "Técnico"];
+foreach ($carreras as $c) {
+    $sel = ($editarIndex !== null && $_SESSION["estudiantes"][$editarIndex]["carrera"] == $c) ? "selected" : "";
+    echo "<option $sel>$c</option>";
+}
+?>
+</select>
+</div>
+
+<?php if ($editarIndex !== null): ?>
+<button name="actualizar" class="btn btn-warning w-100">Actualizar</button>
+<?php else: ?>
+<button name="guardar" class="btn btn-primary w-100">Guardar</button>
+<?php endif; ?>
+
+</form>
+</div>
+</div>
+
+<!-- BOTONES -->
+<form method="POST" class="mb-3">
+<button name="limpiar" class="btn btn-danger w-100">🧹 Limpiar registros</button>
+</form>
+
+<!-- TABLA -->
+<?php if (count($_SESSION["estudiantes"]) > 0): ?>
+
+<table class="table table-bordered table-striped">
+<thead class="table-dark">
+<tr>
+<th>#</th>
+<th>Nombre</th>
+<th>Edad</th>
+<th>Mayor</th>
+<th>Carrera</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+
+<?php foreach ($_SESSION["estudiantes"] as $i => $e): ?>
+<tr>
+<td><?= $i + 1 ?></td>
+<td><?= $e["nombre"] ?></td>
+<td><?= $e["edad"] ?></td>
+<td><?= esMayorDeEdad($e["edad"]) ?></td>
+<td><?= $e["carrera"] ?></td>
+<td>
+<a href="?editar=<?= $i ?>" class="btn btn-sm btn-warning">✏️</a>
+<a href="?eliminar=<?= $i ?>" class="btn btn-sm btn-danger">🗑️</a>
+</td>
+</tr>
+<?php endforeach; ?>
+
+</tbody>
+</table>
+
+<p class="fw-bold">
+📊 Promedio de edades: <?= number_format(promedioEdades($_SESSION["estudiantes"]), 2) ?>
+</p>
+
+<?php endif; ?>
+
+</div>
 </body>
 </html>

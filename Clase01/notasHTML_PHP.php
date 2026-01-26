@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Calculadora de Notas</title>
-
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
