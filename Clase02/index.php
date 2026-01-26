@@ -60,12 +60,21 @@ if (isset($_GET["editar"])) {
 }
 
 if (isset($_POST["actualizar"])) {
+
     $_SESSION["estudiantes"][$_POST["index"]] = [
         "nombre" => $_POST["nombre"],
         "edad" => (int) $_POST["edad"],
         "carrera" => $_POST["carrera"]
     ];
+
     $mensaje = "🔄 Estudiante actualizado";
+
+    // 🔥 LIMPIAR MODO EDICIÓN
+    $editarIndex = null;
+
+    // 🔥 EVITAR QUE EL GET SIGA ACTIVO
+    header("Location: index.php");
+    exit;
 }
 
 // ================================
