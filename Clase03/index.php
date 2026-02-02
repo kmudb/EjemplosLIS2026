@@ -1,4 +1,5 @@
 <?php
+require_once "Inventario.php"; //  ESTO ES CLAVE
 session_start();
 $inventario = $_SESSION['inventario'] ?? [];
 $editar = isset($_GET['edit']);
@@ -38,7 +39,7 @@ $productoEdit = $editar ? $inventario[$_GET['edit']] : null;
                                value="<?= $productoEdit?->getNombre(); ?>" required>
                     </div>
                     <div class="col-md-3">
-                        <input type="number" name="precio" class="form-control" placeholder="Precio"
+                        <input type="number" step="0.01" min="0" placeholder="0.00" name="precio" class="form-control" placeholder="Precio"
                                value="<?= $productoEdit?->getPrecio(); ?>" required>
                     </div>
                     <div class="col-md-3">
